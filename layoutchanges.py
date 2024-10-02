@@ -1,6 +1,23 @@
 import hashlib
 import pymupdf
 
+
+def pdf_to_text(pdf_file, text_file):
+    """Converts a PDF file to a text file using PyMuPDF.
+
+    Args:
+        pdf_file (str): Path to the PDF file.
+        text_file (str): Path to the output text file.
+    """
+
+    with pymupdf.open(pdf_file) as doc:
+        text = ""
+        for page in doc:
+            text += page.get_text()
+
+        with open(text_file, 'w') as f:
+            f.write(text)
+
 def extract_text_blocks_page(pdf_path,page_number):
     """
     Extracts text blocks from a PDF.
