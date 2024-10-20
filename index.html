@@ -73,9 +73,24 @@
         > -->
       </div>
       <div class="row">
+        <div class="offset-2 col-lg-10">
+          <button
+            type="button"
+            class="btn btn-primary"
+            id="compare_button"
+            style="
+              width: 40;
+              background-color: #650360;
+              border-color: #650360;
+              font-weight: bold;
+            "
+          >
+            Compare Content
+          </button>
+        </div>
         <div class="col-lg-2">
           <div class="col-lg-12">
-            <h6 style="font-weight: bold">Previous Version</h6>
+            <h6 style="font-weight: bold" class="mt-3">Previous Version</h6>
           </div>
           <div
             contenteditable="true"
@@ -85,7 +100,7 @@
         </div>
         <div class="col-lg-2">
           <div class="col-lg-12">
-            <h6 style="font-weight: bold">Recent Version</h6>
+            <h6 style="font-weight: bold" class="mt-3">Recent Version</h6>
           </div>
           <div
             contenteditable="true"
@@ -94,7 +109,7 @@
           ></div>
         </div>
         <div class="col-lg-3">
-          <h6 style="font-weight: bold">Summary of changes</h6>
+          <h6 style="font-weight: bold" class="mt-3">Summary of changes</h6>
           <div class="col-lg-12">
             <div class="row">
               <div class="col-lg-12">
@@ -110,29 +125,9 @@
               </div>
               <div class="col-lg-12">
                 <div class="row">
-                  <div class="col-lg-4">
+                  <div class="col-lg-6">
                     <h6
                       id="adds"
-                      style="
-                        color: #406619;
-                        background: #eaf2c2;
-                        width: fit-content;
-                      "
-                    ></h6>
-                  </div>
-                  <div class="col-lg-4">
-                    <h6
-                      id="uniqadds"
-                      style="
-                        color: #406619;
-                        background: #eaf2c2;
-                        width: fit-content;
-                      "
-                    ></h6>
-                  </div>
-                  <div class="col-lg-4">
-                    <h6
-                      id="duplicateadds"
                       style="
                         color: #406619;
                         background: #eaf2c2;
@@ -151,7 +146,28 @@
                 </thead>
                 <tbody></tbody>
               </table>
-
+              <div class="col-lg-12">
+                <h6
+                  style="
+                    font-weight: bold;
+                    font-size: smaller;
+                    color: rgb(90, 89, 89);
+                  "
+                  class="mt-3"
+                >
+                  Recurring Text
+                </h6>
+              </div>
+              <div class="col-lg-6">
+                <h6
+                  id="duplicateadds"
+                  style="
+                    color: #406619;
+                    background: #eaf2c2;
+                    width: fit-content;
+                  "
+                ></h6>
+              </div>
               <table class="table" id="duplicatetable">
                 <thead>
                   <tr>
@@ -164,34 +180,31 @@
 
               <div class="col-lg-12">
                 <div class="row">
-                  <div class="col-lg-4">
+                  <div class="col-lg-6">
                     <h6
-                    id="deletes"
-                    style="color: #b30000; background: #fadad7; width: fit-content"
-                  ></h6>
+                      id="deletes"
+                      style="
+                        color: #b30000;
+                        background: #fadad7;
+                        width: fit-content;
+                      "
+                    ></h6>
                   </div>
-                  <div class="col-lg-4">
-                    <h6
-                    id="uniqdeletes"
-                    style="color: #b30000; background: #fadad7; width: fit-content"
-                  ></h6>
-                  </div>
-                  <div class="col-lg-4">
-                    <h6
-                    id="duplicatedeletes"
-                    style="color: #b30000; background: #fadad7; width: fit-content"
-                  ></h6>
-
-                  </div>
-
                 </div>
               </div>
-            
-            
+              <table class="table" id="uniquedeletetable">
+                <thead>
+                  <tr>
+                    <th scope="col" style="width: 80%">Text</th>
+                    <th scope="col">Link</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
             </div>
           </div>
         </div>
-        <div class="col-lg-5">
+        <div class="col-lg-5 mt-3">
           <div
             id="result"
             style="height: 100%; width: 100%; background-color: white"
@@ -205,25 +218,42 @@
     <script src="diff.js"></script>
     <script src="difflib-browser.js"></script>
     <script defer>
-      var uniq_changes_textdelete_hash = new Set();
-      var duplicate_textdelete_hash = new Set();
+      var del_string_test = "";
+      var add_string_test = "";
 
-      var uniq_changes_textadd_hash = new Set();
-      var duplicate_textadd_hash = new Set();
+      var changes_textdelete_hash = new Set();
+      var changes_textadd_hash = new Set();
 
-      var uniq_changes_map_add = new Map();
-      var uniq_changes_map_delete = new Map();
-
+      //Map to store content
+      var changes_map = new Map();
       // Map to store hash ID counts
-      const duplicate_hashcount_map_adds = new Map();
-      const duplicate_hashcount_map_deletes = new Map();
-
-      var add = [];
-      var deletes = [];
+      const change_map_counts = new Map();
       var a = document.getElementById("a");
       var b = document.getElementById("b");
       var result = document.getElementById("result");
 
+      function reset_elements() {
+        const uniquetable = document.getElementById("uniquetable");
+        const duplicatetable = document.getElementById("duplicatetable");
+        const uniquedeletetable = document.getElementById("uniquedeletetable");
+        const deletes = document.getElementById("deletes");
+        const duplicateadds = document.getElementById("duplicateadds");
+        const adds = document.getElementById("adds");
+        uniquetable.innerHTML = "";
+        duplicatetable.innerHTML = "";
+        uniquedeletetable.innerHTML = "";
+        deletes.innerHTML = "";
+        duplicateadds.innerHTML = "";
+        adds.innerHTML = "";
+        changes_textadd_hash.clear();
+        changes_textdelete_hash.clear();
+        changes_map.clear();
+        change_map_counts.clear();
+      }
+      function findDifferentChar(str1, str2) {
+        s = new difflib.SequenceMatcher(null, str1, str2);
+        return s;
+      }
       function updateMapcount(map, hashid) {
         if (map.has(hashid)) {
           // Increment count if hashId already exists in the map
@@ -238,7 +268,6 @@
       function handleLinkClick(key) {
         // Prevent default link behavior (going to a new page)
         event.preventDefault();
-
         console.log("Clicked key:", key);
         const targetElement = document.getElementById(key);
         if (targetElement) {
@@ -248,11 +277,13 @@
         }
       }
 
-      function write_to_uniqchange_table(pdfcountmap, id) {
+      function write_to_uniqchange_table(hashidset, pdfcountmap, id) {
         const tableBody = document.getElementById(id); // Select the table body
-        for (const [key, value] of pdfcountmap.entries()) {
-          const displayedKey =
-            key.length > 5 ? key.substring(0, 5) + "..." : key;
+
+        hashidset.forEach((id) => {
+          console.log(id);
+          var key = id;
+          var value = pdfcountmap.get(id);
           const row = `
       <tr>
         <td>${value}</td>
@@ -260,7 +291,7 @@
       </tr>
     `;
           tableBody.innerHTML += row; // Append the row to the table body
-        }
+        });
       }
 
       function write_to_table(pdfcountmap, id) {
@@ -270,9 +301,9 @@
         );
 
         for (const [key, value] of sortedPdfCountMap.entries()) {
-          var repeated_text = uniq_changes_map_add.get(key);
+          var repeated_text = changes_map.get(key);
           var repeated_text_count = value;
-          if (repeated_text_count > 0) {
+          if (repeated_text_count >= 1) {
             const row = `
       <tr>
         <td>${repeated_text}</td>
@@ -283,6 +314,7 @@
           }
         }
       }
+
       function sumMapValues(pdftotalcountmap) {
         let totalCount = 0;
         for (const value of pdftotalcountmap.values()) {
@@ -298,6 +330,7 @@
         const totalCount = sumMapValues(pdfcountmap);
         return totalCount;
       }
+
       function printSet(pdfcomparedataset, map) {
         // Using forEach method
         pdfcomparedataset.forEach((value) => {
@@ -305,16 +338,10 @@
         });
       }
 
-      function printDeleteSet(pdfcomparedataset, map) {
-        // Using forEach method
-        pdfcomparedataset.forEach((value) => {
-          console.log("Hash Id:\t" + value + " Value:\t" + map.get(value));
-        });
-      }
       function normalizeText(text) {
         text = text.toLowerCase();
         text = text.replace(/\s+/g, " "); // Remove extra whitespace
-        text = text.replace(/[\t~!\':.,;`\[\]\n"“” ]/, "");
+        text = text.replace(/[\t~!\':.,;`\[\]\n"“” ]+/g, "");
         return text;
       }
 
@@ -323,6 +350,7 @@
       }
 
       function changed() {
+        reset_elements();
         var fragment = document.createDocumentFragment();
         var diff;
         if (window.diffType === "diffPatch") {
@@ -372,43 +400,51 @@
             var text_value = diff[i].value;
             var normalize_text_value = normalizeText(text_value);
             let normalize_text_value_formatted = normalize_text_value.trim();
+            del_string_test = normalize_text_value_formatted;
+            console.log("DEL VAL:" + normalize_text_value_formatted);
+            if (normalize_text_value_formatted != "") {
+              var hashid = hash(normalize_text_value_formatted);
+              changes_map.set(hashid, text_value);
 
-            node.appendChild(document.createTextNode(text_value));
-            deletes.push(diff[i]);
-            var hashid = hash(normalize_text_value_formatted);
-            uniq_changes_map_delete.set(hashid, normalize_text_value_formatted);
-
-            if (!uniq_changes_textdelete_hash.has(hashid)) {
-              uniq_changes_textdelete_hash.add(hashid);
-            } else {
-              duplicate_textdelete_hash.add(hashid);
-              console.log(
-                "already present:\t" + normalize_text_value_formatted
-              );
-              updateMapcount(duplicate_hashcount_map_deletes, hashid);
+              if (!changes_textdelete_hash.has(hashid)) {
+                changes_textdelete_hash.add(hashid);
+              } else {
+                updateMapcount(change_map_counts, hashid);
+              }
+              node.id = hashid;
+              node.appendChild(document.createTextNode(text_value));
             }
           } else if (diff[i].added) {
             node = document.createElement("ins");
             var text_value = diff[i].value;
             var normalize_text_value = normalizeText(text_value);
             let normalize_text_value_formatted = normalize_text_value.trim();
-
-            if (
-              normalize_text_value_formatted != "" &&
-              normalize_text_value_formatted != "current version"
-            ) {
+            add_string_test = normalize_text_value_formatted;
+            console.log("N VAL:" + normalize_text_value_formatted);
+            if (normalize_text_value_formatted != "") {
               var hashid = hash(normalize_text_value_formatted);
+              console.log("ADD Hash ID\t" + hashid);
+              if (changes_textdelete_hash.has(hashid)) {
+                console.log(
+                  "-------SAME PRESENT in ADD and DELETE-----\t" + hashid
+                );
+                console.log(changes_map.get(hashid));
+                console.log(
+                  "----------------------------------------------------"
+                );
+              } else {
+                changes_map.set(hashid, text_value);
+              }
+              if (
+                !changes_textadd_hash.has(hashid) &&
+                !changes_textdelete_hash.has(hashid)
+              ) {
+                changes_textadd_hash.add(hashid);
+              } else if (changes_textadd_hash.has(hashid)) {
+                updateMapcount(change_map_counts, hashid);
+              }
               node.id = hashid;
               node.appendChild(document.createTextNode(text_value));
-              uniq_changes_map_add.set(hashid, normalize_text_value_formatted);
-
-              if (!uniq_changes_textadd_hash.has(hashid)) {
-                uniq_changes_textadd_hash.add(hashid);
-              } else {
-                duplicate_textadd_hash.add(hashid);
-                updateMapcount(duplicate_hashcount_map_adds, hashid);
-              }
-              add.push(diff[i]);
             }
           } else if (diff[i].chunkHeader) {
             node = document.createElement("span");
@@ -424,34 +460,30 @@
         result.appendChild(fragment);
         var add_summary = document.getElementById("adds");
         var delete_summary = document.getElementById("deletes");
-        var uniq_add_summary = document.getElementById("uniqadds");
-        var uniq_delete_summary = document.getElementById("uniqdeletes");
         var duplicate_add_summary = document.getElementById("duplicateadds");
-        var duplicate_delete_summary = document.getElementById("duplicatedeletes");
 
-        var duplicate_text_count = printidmapandContent(
-          duplicate_hashcount_map_adds
-        );
-        add_summary.innerHTML = "Total text additions:\t" + add.length;
-        uniq_add_summary.innerHTML =
-          "Unique:\t" + uniq_changes_textadd_hash.size;
+        var duplicate_text_count = printidmapandContent(change_map_counts);
+        add_summary.innerHTML = "Unique Adds:\t" + changes_textadd_hash.size;
         duplicate_add_summary.innerHTML = "Duplicate:\t" + duplicate_text_count;
         delete_summary.innerHTML =
-          "Total deletions from Previous version:\t" + deletes.length;
-        uniq_delete_summary.innerHTML =
-          "Unique:\t" +
-          uniq_changes_textdelete_hash.size;
+          "Unique Deletes:\t" + changes_textdelete_hash.size;
 
-        var duplicate_text_delete_count = printidmapandContent(
-          duplicate_hashcount_map_deletes
+        var duplicate_text_delete_count =
+          printidmapandContent(change_map_counts);
+
+        write_to_table(change_map_counts, "duplicatetable");
+        write_to_uniqchange_table(
+          changes_textadd_hash,
+          changes_map,
+          "uniquetable"
         );
-          duplicate_delete_summary.innerHTML='Duplicate:\t'+duplicate_text_delete_count;
-
-        printSet(duplicate_textadd_hash, uniq_changes_map_add);
-        write_to_table(duplicate_hashcount_map_adds, "duplicatetable");
-        write_to_uniqchange_table(uniq_changes_map_add, "uniquetable");
-        console.log("---------------------DELETE-----------------------------");
-        printDeleteSet(duplicate_textdelete_hash, uniq_changes_map_delete);
+        write_to_uniqchange_table(
+          changes_textdelete_hash,
+          changes_map,
+          "uniquedeletetable"
+        );
+        var match_ratio = findDifferentChar(del_string_test, add_string_test);
+        console.log("Interesting:" + match_ratio.ratio());
       }
 
       window.onload = function () {
@@ -463,15 +495,30 @@
           document.querySelector('#settings [name="diff_type"]:checked')
         );
         changed();
+        disable_compare_button();
+        var button = document.getElementById("compare_button");
+        button.onclick = changed;
       };
 
-      a.onpaste = a.onchange = b.onpaste = b.onchange = changed;
-
-      if ("oninput" in a) {
-        a.oninput = b.oninput = changed;
-      } else {
-        a.onkeyup = b.onkeyup = changed;
+      function disable_compare_button() {
+        var button = document.getElementById("compare_button");
+        button.disabled = true;
       }
+
+      function enable_compare_button() {
+        var button = document.getElementById("compare_button");
+        button.disabled = false;
+      }
+
+      b.onpaste = b.onchange = enable_compare_button;
+
+      // a.onpaste = a.onchange = b.onpaste = b.onchange = changed;
+
+      // if ("oninput" in a) {
+      //   a.oninput = b.oninput = changed;
+      // } else {
+      //   a.onkeyup = b.onkeyup = changed;
+      // }
 
       function onDiffTypeChange(radio) {
         window.diffType = radio.value;
